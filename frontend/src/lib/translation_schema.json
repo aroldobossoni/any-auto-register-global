@@ -1,0 +1,100 @@
+{
+  "schema_type": "TranslationTargets",
+  "targets": {
+    "frontend": {
+      "path": "frontend/**/*.ts(x)",
+      "cjk_label": "Transformar todas strings chinesas e comentários para inglês"
+    },
+    "api": {
+      "path": "api/**/*.py",
+      "cjk_label": "Traduzir docstrings e mensagens de log"
+    },
+    "platforms": {
+      "path": "platforms/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens de erro e seletores inline para inglês; mover seletores chineses originais para perfil zh-CN"
+    },
+    "core": {
+      "path": "core/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "providers": {
+      "path": "providers/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "services": {
+      "path": "services/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "tools": {
+      "path": "tools/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "tests": {
+      "path": "tests/**/*.py",
+      "cjk_label": "Traduzir docstrings, mensagens de asserção para inglês"
+    },
+    "docs": {
+      "path": "README*.md;CONTRIBUTING.md",
+      "cjk_label": "Traduzir documentação para inglês; manter README_en.md como fonte única"
+    },
+    "customer_portal_api": {
+      "path": "customer_portal_api/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "scripts": {
+      "path": "scripts/**/*.py",
+      "cjk_label": "Traduzir docstrings, comentários, mensagens para inglês"
+    },
+    "profiles": {
+      "path": "profiles/<platform>/zh-CN/**",
+      "cjk_label": "Manter seletores chineses originais extraídos do código; criar perfil <platform>/zh-CN"
+    },
+    "profiles_en": {
+      "path": "profiles/<platform>/en/**",
+      "cjk_label": "Criar perfil inglês com seletores traduzidos"
+    }
+  },
+  "strangler_phases": [
+    {
+      "phase": 1,
+      "label": "Injetar Facade de localização na automação existente",
+      "files": ["core/base_platform.py", "core/lifecycle.py", "platforms/*/browser_register.py"]
+    },
+    {
+      "phase": 2,
+      "label": "Extrair primeiro lote de seletores chineses para perfis zh-CN",
+      "files": ["platforms/chatgpt/browser_register.py", "platforms/cursor/browser_register.py"]
+    },
+    {
+      "phase": 3,
+      "label": "Traduzir código-fonte principal (core, api, services, tests)",
+      "files": ["core/**/*.py", "api/**/*.py", "services/**/*.py", "tests/**/*.py"]
+    },
+    {
+      "phase": 4,
+      "label": "Traduzir frontend (UI + lib + componentes)",
+      "files": ["frontend/src/**"]
+    },
+    {
+      "phase": 5,
+      "label": "Criar perfis en para cada plataforma e remover seletores chineses inline",
+      "files": ["platforms/**"]
+    },
+    {
+      "phase": 6,
+      "label": "Traduzir documentação e scripts",
+      "files": ["README*.md", "CONTRIBUTING.md", "customer_portal_api/**", "scripts/**"]
+    }
+  ],
+  "facade_interface": {
+    "name": "PlatformLocalizer",
+    "responsibility": "Resolver seletores e textos baseados no perfil de idioma ativo para a plataforma",
+    "methods": [
+      "get_selector(platform, key, default_lang='en') -> str",
+      "get_text(platform, key, default_lang='en') -> str",
+      "set_locale(platform, locale_code) -> void",
+      "get_locale(platform) -> str"
+    ],
+    "deploy_strategy": "Strangler Pattern: Facade é injetada sem alterar assinatura dos métodos existentes; código antigo permanece até que todos os sites de chamada sejam migrados"
+  }
+}

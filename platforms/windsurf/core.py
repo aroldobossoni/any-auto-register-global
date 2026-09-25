@@ -1,11 +1,11 @@
-"""Windsurf 注册与账号状态请求封装。
+"""Windsurf registration and account status request wrapper.
 
-HAR 里 Windsurf 网站主要使用两类接口：
-  1. /_devin-auth/* JSON 接口完成邮箱验证码注册/登录
-  2. /_backend/exa.* application/proto 接口查询用户、套餐与额度
+The Windsurf website mainly uses two interface types:
+ 1. /_devin-auth/JSON interfaces for email verification registration/login
+ 2. /_backend/exa.application/proto interfaces for user, plan, and quota queries
 
-这里不依赖完整 protobuf 生成代码，只实现当前自动化需要的轻量
-protobuf wire 编解码。
+This module does not depend on fully generated protobuf code; it only implements
+lightweight protobuf wire encoding/decoding needed by the current automation.
 """
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from typing import Any, Callable
 from urllib.parse import quote
 
 from curl_cffi import requests as curl_requests
+
+from core.localization import get_localization_facade
 
 
 WINDSURF_BASE = "https://windsurf.com"
@@ -277,11 +279,13 @@ def build_account_overview(
     current_user: dict[str, Any],
     plan_status: dict[str, Any],
     stripe_state: dict[str, Any] | None = None,
+    language: str = "en",
 ) -> dict[str, Any]:
     user = dict(current_user.get("user") or {})
     team = dict(current_user.get("team") or {})
     plan = dict(plan_status.get("plan") or current_user.get("plan") or {})
     stripe_state = dict(stripe_state or {})
+    localization = get_localization_facade("windsurf", language)
     plan_name = _as_text(plan.get("plan_name") or "unknown")
     plan_state = _as_text(plan.get("plan_state") or _plan_state(plan_name))
     prompt_limit = _as_int(plan_status.get("prompt_credits_limit") or plan.get("prompt_credits_limit"))
@@ -292,21 +296,21 @@ def build_account_overview(
     usage_breakdowns = []
     if prompt_limit or prompt_remaining not in (None, ""):
         usage_breakdowns.append({
-            "display_name": "Prompt Credits",
+            "display_name": localization.get_string("prompt_credits"),
             "usage_limit": prompt_limit or "",
             "remaining_usage": f"{prompt_remaining}%" if prompt_remaining not in (None, "") else "",
             "current_usage": f"{max(0, 100 - _as_int(prompt_remaining))}%" if prompt_remaining not in (None, "") else "",
         })
     if flow_limit or flow_remaining not in (None, ""):
         usage_breakdowns.append({
-            "display_name": "Flow Action Credits",
+            "display_name": localization.get_string("flow_credits"),
             "usage_limit": flow_limit or "",
             "remaining_usage": f"{flow_remaining}%" if flow_remaining not in (None, "") else "",
             "current_usage": f"{max(0, 100 - _as_int(flow_remaining))}%" if flow_remaining not in (None, "") else "",
         })
 
     chips = [chip for chip in [
-        "有效" if user else "",
+        localization.get_string("valid_user") if user else "",
         plan_name if plan_name and plan_name != "unknown" else "",
         f"Prompt {prompt_remaining}%" if prompt_remaining not in (None, "") else "",
         f"Flow {flow_remaining}%" if flow_remaining not in (None, "") else "",
@@ -347,21 +351,29 @@ def build_account_overview(
     }
 
 
-def summarize_account_state(state: dict[str, Any], *, fallback_email: str = "") -> dict[str, Any]:
+def summarize_account_state(
+    state: dict[str, Any], *, fallback_email: str = "", language: str = "en"
+) -> dict[str, Any]:
     overview = build_account_overview(
         current_user=dict(state.get("current_user") or {}),
         plan_status=dict(state.get("plan_status") or {}),
         stripe_state=dict(state.get("stripe_subscription") or {}),
+        language=language,
     )
     if not overview.get("remote_email") and fallback_email:
         overview["remote_email"] = fallback_email
     plan_name = _as_text(overview.get("plan_name") or "unknown")
-    message_parts = [f"当前套餐: {plan_name}"]
+    localization = get_localization_facade("windsurf", language)
+    message_parts = [localization.get_string("current_plan").format(plan_name=plan_name)]
     if overview.get("remaining_credits"):
-        message_parts.append(f"剩余额度: {overview['remaining_credits']}")
+        message_parts.append(
+            localization.get_string("remaining_credits").format(
+                credits=overview["remaining_credits"]
+            )
+        )
     return {
         "valid": bool(overview.get("valid")),
-        "message": "，".join(message_parts),
+        "message": ", ".join(message_parts),
         "remote_user": overview.get("remote_user", {}),
         "team": overview.get("team", {}),
         "membership_type": plan_name,
@@ -430,11 +442,11 @@ class WindsurfClient:
             timeout=30,
         )
         if response.status_code >= 400:
-            raise RuntimeError(f"{path} 失败: HTTP {response.status_code} {response.text[:200]}")
+            raise RuntimeError(f"{path} failed: HTTP {response.status_code} {response.text[:200]}")
         data = response.json()
         if isinstance(data, dict):
             return data
-        raise RuntimeError(f"{path} 返回格式异常")
+        raise RuntimeError(f"{path} returned unexpected format")
 
     def _proto_post(
         self,
@@ -473,7 +485,7 @@ class WindsurfClient:
             timeout=30,
         )
         if response.status_code >= 400:
-            raise RuntimeError(f"{method} 失败: HTTP {response.status_code} {response.text[:200]}")
+            raise RuntimeError(f"{method} failed: HTTP {response.status_code} {response.text[:200]}")
         return bytes(response.content or b"")
 
     def check_user_login_method(self, email: str) -> None:
@@ -483,18 +495,18 @@ class WindsurfClient:
         return self._json_post("/_devin-auth/connections", {"product": "windsurf", "email": email})
 
     def start_email_signup(self, email: str) -> str:
-        self.log(f"Step1: 发送 Windsurf 验证码到 {email}")
+        self.log(f"Step1: to Windsurf verification code to {email}")
         data = self._json_post(
             "/_devin-auth/email/start",
             {"email": email, "mode": "signup", "product": "Windsurf"},
         )
         token = _as_text(data.get("email_verification_token"))
         if not token:
-            raise RuntimeError("Windsurf 未返回 email_verification_token")
+            raise RuntimeError("Windsurf did not return email_verification_token")
         return token
 
     def complete_email_signup(self, *, email: str, verification_token: str, code: str, password: str, name: str) -> dict[str, Any]:
-        self.log("Step2: 提交 Windsurf 邮箱验证码")
+        self.log("Step2: Windsurf email verification code")
         data = self._json_post(
             "/_devin-auth/email/complete",
             {
@@ -507,19 +519,19 @@ class WindsurfClient:
         )
         auth_token = _as_text(data.get("token"))
         if not auth_token:
-            raise RuntimeError("Windsurf 未返回 auth token")
+            raise RuntimeError("Windsurf did not return auth token")
         return data
 
     def login_with_password(self, email: str, password: str) -> dict[str, str]:
-        """用邮箱+密码登录已有账号，返回 session_token 等信息"""
-        self.log(f"密码登录 Windsurf: {email}")
+        """Log in with email+password, return session_token etc."""
+        self.log(f"Password login to Windsurf: {email}")
         start_data = self._json_post(
             "/_devin-auth/email/start",
             {"email": email, "mode": "login", "product": "Windsurf"},
         )
         verification_token = _as_text(start_data.get("email_verification_token"))
         if not verification_token:
-            raise RuntimeError("Windsurf 登录未返回 email_verification_token")
+            raise RuntimeError("Windsurf login did not return email_verification_token")
         data = self._json_post(
             "/_devin-auth/email/complete",
             {
@@ -530,11 +542,11 @@ class WindsurfClient:
         )
         auth_token = _as_text(data.get("token"))
         if not auth_token:
-            raise RuntimeError("Windsurf 密码登录未返回 auth token")
+            raise RuntimeError("Windsurf password login did not return auth token")
         return self.post_auth(auth_token)
 
     def post_auth(self, auth_token: str) -> dict[str, str]:
-        self.log("Step3: 兑换 Windsurf session")
+        self.log("Step3: Windsurf session")
         content = self._proto_post(
             "WindsurfPostAuth",
             _field_string(1, auth_token),
@@ -542,7 +554,7 @@ class WindsurfClient:
         )
         data = parse_post_auth_response(content)
         if not data.get("session_token"):
-            raise RuntimeError("Windsurf 未返回 session_token")
+            raise RuntimeError("Windsurf did not return session_token")
         return data
 
     def _auth_body(self, session_token: str, *, include_plan_status_flag: bool = False) -> bytes:
@@ -604,7 +616,7 @@ class WindsurfClient:
     ) -> dict[str, str]:
         token = _as_text(turnstile_token)
         if not token:
-            raise RuntimeError("缺少 Turnstile token，无法调用 Windsurf SubscribeToPlan")
+            raise RuntimeError("Missing Turnstile token, cannot call Windsurf SubscribeToPlan")
         success = success_url or f"{WINDSURF_BASE}/subscription/pending?expect_tier=trial"
         cancel = cancel_url or f"{WINDSURF_BASE}/plan?plan_cancelled=true&plan_tier=trial"
         billing_referer = f"/billing/individual?plan=9&turnstile_token={quote(token, safe='')}"
@@ -628,12 +640,15 @@ class WindsurfClient:
         )
         result = parse_subscribe_to_plan_response(content)
         if not result.get("checkout_url"):
-            raise RuntimeError("Windsurf SubscribeToPlan 未返回 checkout_url")
+            raise RuntimeError("Windsurf SubscribeToPlan did not return checkout_url")
         return result
 
-    def load_account_state(self, *, session_token: str, account_id: str = "", org_id: str = "", fallback_email: str = "") -> dict[str, Any]:
+    def load_account_state(
+        self, *, session_token: str, account_id: str = "", org_id: str = "",
+        fallback_email: str = "", language: str = "en"
+    ) -> dict[str, Any]:
         if not session_token:
-            raise RuntimeError("账号缺少 Windsurf session_token")
+            raise RuntimeError("Account missing Windsurf session_token")
         current_user = self.get_current_user(session_token, account_id=account_id, org_id=org_id)
         plan_status = self.get_plan_status(session_token, account_id=account_id, org_id=org_id)
         stripe_state: dict[str, Any] = {}
@@ -646,7 +661,9 @@ class WindsurfClient:
             "plan_status": plan_status,
             "stripe_subscription": stripe_state,
         }
-        state["summary"] = summarize_account_state(state, fallback_email=fallback_email)
+        state["summary"] = summarize_account_state(
+            state, fallback_email=fallback_email, language=language
+        )
         return state
 
 
@@ -655,6 +672,7 @@ def load_windsurf_account_state(
     *,
     proxy: str | None = None,
     log_fn: Callable[[str], None] = print,
+    language: str = "en",
 ) -> dict[str, Any]:
     context = extract_windsurf_account_context(account)
     client = WindsurfClient(proxy=proxy, log_fn=log_fn)

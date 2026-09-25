@@ -1,0 +1,20 @@
+{
+  "selectors": {
+    "human_verification_signal_1": "需要确认您是真人",
+    "human_verification_signal_2": "确认您是真人",
+    "human_verification_signal_3": "正在验证您是真人"
+  },
+  "strings": {
+    "valid_user": "有效",
+    "current_plan": "当前套餐: {plan_name}",
+    "remaining_credits": "剩余额度: {credits}",
+    "capability_generate_link_label": "生成 Pro Trial 链接（自动打码）",
+    "capability_generate_link_browser_label": "生成 Pro Trial 链接（浏览器）",
+    "capability_switch_desktop_label": "切换桌面应用（纯协议）",
+    "param_turnstile_token_label": "Turnstile Token（可空，自动打码）",
+    "param_timeout_label": "等待秒数（默认 180）",
+    "param_headless_label": "无头模式",
+    "prompt_credits": "Prompt 额度",
+    "flow_credits": "Flow 操作额度"
+  }
+}

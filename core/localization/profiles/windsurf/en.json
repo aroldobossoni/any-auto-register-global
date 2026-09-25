@@ -1,0 +1,20 @@
+{
+  "selectors": {
+    "human_verification_signal_1": "verify human",
+    "human_verification_signal_2": "verify you are human",
+    "human_verification_signal_3": "verifying human"
+  },
+  "strings": {
+    "valid_user": "Valid",
+    "current_plan": "Current Plan: {plan_name}",
+    "remaining_credits": "Remaining Quota: {credits}",
+    "capability_generate_link_label": "Generate Pro Trial Link (Auto-Captcha)",
+    "capability_generate_link_browser_label": "Generate Pro Trial Link (Browser)",
+    "capability_switch_desktop_label": "Switch Desktop App (Protocol)",
+    "param_turnstile_token_label": "Turnstile Token (Optional, Auto-solved)",
+    "param_timeout_label": "Wait Seconds (Default 180)",
+    "param_headless_label": "Headless Mode",
+    "prompt_credits": "Prompt Credits",
+    "flow_credits": "Flow Action Credits"
+  }
+}
