@@ -13,17 +13,19 @@
 </p>
 
 <p>
-  <a href="https://github.com/lxf746/any-auto-register/releases/latest"><b>下载桌面版</b></a>
-  &nbsp;·&nbsp;
-  <a href="#它解决什么">它解决什么</a>
-  &nbsp;·&nbsp;
-  <a href="#一眼看完">界面预览</a>
-  &nbsp;·&nbsp;
-  <a href="#社群">加入社群</a>
-  &nbsp;·&nbsp;
-  <a href="README_en.md">English</a>
-  &nbsp;·&nbsp;
-  <a href="README_vi.md">Tiếng Việt</a>
+<a href="https://github.com/lxf746/any-auto-register/releases/latest"><b>下载桌面版</b></a>
+&nbsp;·&nbsp;
+<a href="#它解决什么">它解决什么</a>
+&nbsp;·&nbsp;
+<a href="#一眼看完">界面预览</a>
+&nbsp;·&nbsp;
+<a href="#社群">加入社群</a>
+&nbsp;·&nbsp;
+<a href="README.md">English</a>
+&nbsp;·&nbsp;
+<a href="README_pt-BR.md">Português</a>
+&nbsp;·&nbsp;
+<a href="README_vi.md">Tiếng Việt</a>
 </p>
 
 <img src="assets/screenshots/概览.png" alt="Any Auto Register Dashboard" width="92%" />
