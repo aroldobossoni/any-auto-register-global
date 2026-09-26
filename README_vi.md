@@ -13,17 +13,19 @@ Tự động hóa tài khoản cho 11+ nền tảng AI · Chế độ giao thứ
 </p>
 
 <p>
-  <a href="https://github.com/lxf746/any-auto-register/releases/latest"><b>Tải bản desktop</b></a>
-  &nbsp;·&nbsp;
-  <a href="#vấn-đề-được-giải-quyết">Vấn đề được giải quyết</a>
-  &nbsp;·&nbsp;
-  <a href="#xem-nhanh">Ảnh chụp</a>
-  &nbsp;·&nbsp;
-  <a href="#cộng-đồng">Cộng đồng</a>
-  &nbsp;·&nbsp;
-  <a href="README.md">中文</a>
-  &nbsp;·&nbsp;
-  <a href="README_en.md">English</a>
+<a href="https://github.com/lxf746/any-auto-register/releases/latest"><b>Tải bản desktop</b></a>
+&nbsp;·&nbsp;
+<a href="#vấn-đề-được-giải-quyết">Vấn đề được giải quyết</a>
+&nbsp;·&nbsp;
+<a href="#xem-nhanh">Ảnh chụp</a>
+&nbsp;·&nbsp;
+<a href="#cộng-đồng">Cộng đồng</a>
+&nbsp;·&nbsp;
+<a href="README.md">English</a>
+&nbsp;·&nbsp;
+<a href="README_zh-CN.md">中文</a>
+&nbsp;·&nbsp;
+<a href="README_pt-BR.md">Português</a>
 </p>
 
 <img src="assets/screenshots/概览.png" alt="Any Auto Register Dashboard" width="92%" />
