@@ -33,7 +33,7 @@ Account automation & management for 11+ platforms / Protocol & browser dual-mode
 
 ---
 
-> **Note:** This repository is an independent global edition of `aroldobossoni/any-auto-register-global`, fully adapted and localized.
+> **Note:** This repository is an independent global edition based on the original upstream `lxf746/any-auto-register`, fully adapted and localized.
 
 > This project is for learning and research purposes only. Do not use it for commercial violations. Users must evaluate and comply with target platforms' terms of service.
 
@@ -54,7 +54,7 @@ Most similar tools only solve "how to register a specific platform", leaving mas
 
 Combined with the [Any2API](https://github.com/lxf746/any2api) gateway, you can achieve one-click automated batch registration and immediately use accounts as OpenAI / Claude APIs.
 
-## Core Features & Modules
+## Supported Platforms & Modules
 
 - **Platforms**: ChatGPT / Cursor / Kiro / Trae.ai / Tavily / Grok / Blink / Cerebras / OpenBlockLabs / Windsurf, plus Universal Adapter
 - **Mailboxes**: MoeMail / Cloudflare Worker / Laoudo / DuckMail / Testmail / Freemail / TempMail.lol / Temp-Mail Web / DuckDuckGo Email
